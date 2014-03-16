@@ -18,3 +18,6 @@ type Methods interface {
 	OldApi(name string, id int) (session string)
 	NewApi(id int) (session string)
 }
+
+type NewInterface interface {
+}

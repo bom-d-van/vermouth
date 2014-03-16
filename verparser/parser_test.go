@@ -1,4 +1,4 @@
-package main
+package verparser
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ type MainSuite struct{}
 var _ = Suite(&MainSuite{})
 
 func (s *MainSuite) TestParse(c *C) {
-	changes, err := parse("github.com/bom-d-van/vermouth/testapis/v1", "github.com/bom-d-van/vermouth/testapis/v2")
+	changes, err := Parse("github.com/bom-d-van/vermouth/verparser/testapis/v1", "github.com/bom-d-van/vermouth/verparser/testapis/v2")
 	if err != nil {
 		c.Fatal(err)
 	}

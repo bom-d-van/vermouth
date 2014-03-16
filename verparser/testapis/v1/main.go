@@ -15,3 +15,6 @@ type Methods interface {
 	OldApi(name string, id string) (session string)
 	TemporalSession() (session string)
 }
+
+type RemovedInterface interface {
+}
