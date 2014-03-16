@@ -20,51 +20,28 @@ func (s *MainSuite) TestParse(c *C) {
 
 	c.Check(changes.GenDoc(), Equals, `The New API is NOT backward compatible.
 Structs:
-
 Deprecated: OldEntry
-
 Modified:
-
 Entry:
-
 	Deprecated Fields:
-
-	Name string
-
-	Modified Types:
-
-	Id: string -> int
-
+		OldField float64
+	Type Changes:
+		Id: string -> int
 	New Fields:
-
-	Type string
-
-New:
-
+		NewField string
+New: EntryItem
 ========
-
 Interfaces:
-
-Deprecated:
-
+Deprecated: RemovedInterface
 Modified:
-
 Methods:
-
-	Deprecated:
-
-	TemporalSession() (session string)
-
-	Modified:
-
-	OldApi(name string, id string) (session string)
-	->
-	OldApi(name string, id int) (session string)
-
-	New:
-
-	NewApi(id int) (session string)
-
-New:
+	Deprecated Methods:
+		TemporalSession() (session string)
+	Signature Changes:
+		OldApi(name string, id string) (session string)
+		-> OldApi(name string, id int) (session string)
+	New Methods:
+		NewApi(id int) (session string)
+New: NewInterface
 `)
 }

@@ -3,20 +3,34 @@ package main
 import (
 	"flag"
 	"os"
+	"github.com/bom-d-van/goutils/gocheckutils/logutils"
+
+	"github.com/bom-d-van/vermouth/verparser"
 )
 
 var (
-	gopath      = os.Getenv("GOPATH")
-	prevPkgFlag = flag.String("prev", "", "")
-	newPkgFlag  = flag.String("new", "", "")
-	outputFlag  = flag.String("output", "", "")
+	prevPkgFlag = flag.String("prev", "", "package path to old version of the package")
+	newPkgFlag  = flag.String("new", "", "package path to new version of the package")
+	outputFlag  = flag.String("output", "", "print out changes to")
+	debugFlag   = flag.Bool("debug", false, "print out debug logs")
 )
 
 func main() {
 	flag.Parse()
-	// log.Println("parsing packages")
-	// changes, err := parse(*prevPkgFlag, *newPkgFlag)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	if !*debugFlag {
+		logutils.NullLogOutput()
+	}
+	if *prevPkgFlag == "" || *newPkgFlag == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	changes, err := verparser.Parse(*prevPkgFlag, *newPkgFlag)
+	if err != nil {
+		panic(err)
+	}
+	if *outputFlag != "" {
+
+	} else {
+		os.Stdout.Write([]byte(changes.GenDoc()))
+	}
 }

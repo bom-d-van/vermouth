@@ -166,7 +166,7 @@ Modified:
 {{end}}
 
 {{if .ModifiedFields}}
-	Modified Types:
+	Type Changes:
 	{{range .ModifiedFields}}
 		{{.Name}}: {{.OriginType}} -> {{.CurrentType}}
 	{{end}}
@@ -200,11 +200,10 @@ Modified:
 {{end}}
 
 {{if .ModifiedMethods}}
-	Modified Methods:
+	Signature Changes:
 	{{range .ModifiedMethods}}
 		{{with .OriginalMethod}}{{.Name}}({{$p := .Params}}{{range $i, $f := $p}}{{.Name}} {{.Type}}{{sigcomma $p $i}}{{end}}) ({{$p := .Results}}{{range $i, $f := $p}}{{.Name}} {{.Type}}{{sigcomma $p $i}}{{end}}){{end}}
-		->
-		{{with .CurrentMethod}}{{.Name}}({{$p := .Params}}{{range $i, $f := $p}}{{.Name}} {{.Type}}{{sigcomma $p $i}}{{end}}) ({{$p := .Results}}{{range $i, $f := $p}}{{.Name}} {{.Type}}{{sigcomma $p $i}}{{end}}){{end}}
+		-> {{with .CurrentMethod}}{{.Name}}({{$p := .Params}}{{range $i, $f := $p}}{{.Name}} {{.Type}}{{sigcomma $p $i}}{{end}}) ({{$p := .Results}}{{range $i, $f := $p}}{{.Name}} {{.Type}}{{sigcomma $p $i}}{{end}}){{end}}
 	{{end}}
 {{end}}
 
@@ -232,16 +231,35 @@ func newStruct(name string, node *ast.StructType) (s *Struct) {
 func newField(name string, node *ast.Field) (f *Field) {
 	f = new(Field)
 	f.Name = name
-	f.Type = node.Type.(*ast.Ident).Name
+	f.Type = getTypeString(node.Type)
 
 	return
+}
+
+func getTypeString(t ast.Node) string {
+	switch nt := t.(type) {
+	case *ast.Ident:
+		return nt.Name
+	case *ast.StarExpr:
+		return "*" + getTypeString(nt.X)
+	case *ast.ArrayType:
+		return "[]" + getTypeString(nt.Elt)
+	case *ast.MapType:
+		return "[" + getTypeString(nt.Key) + "]" + getTypeString(nt.Value)
+	case *ast.SelectorExpr:
+		return nt.X.(*ast.Ident).Name + "." + nt.Sel.Name
+	default:
+		log.Printf("--> %+v\n", t)
+	}
+
+	return ""
 }
 
 func newModifiedField(name string, t, nt ast.Node) (mf *ModifiedField) {
 	mf = new(ModifiedField)
 	mf.Name = name
-	mf.OriginType = t.(*ast.Ident).Name
-	mf.CurrentType = nt.(*ast.Ident).Name
+	mf.OriginType = getTypeString(t)
+	mf.CurrentType = getTypeString(nt)
 	return
 }
 
@@ -439,7 +457,11 @@ func (w *walker) findField(fl *ast.FieldList, name string) *ast.Field {
 func (w *walker) isSameType(t, nt ast.Node) bool {
 	switch tt := t.(type) {
 	case *ast.Ident:
-		return tt.Name == nt.(*ast.Ident).Name
+		ntt, ok := nt.(*ast.Ident)
+		if !ok {
+			return false
+		}
+		return tt.Name == ntt.Name
 	case *ast.FuncType:
 		ntt := nt.(*ast.FuncType)
 		if len(tt.Params.List) != len(ntt.Params.List) || len(tt.Results.List) != len(ntt.Results.List) {
@@ -473,6 +495,34 @@ func (w *walker) isSameType(t, nt ast.Node) bool {
 		}
 
 		return true
+	case *ast.StarExpr:
+		ntt, ok := nt.(*ast.StarExpr)
+		if !ok {
+			return false
+		}
+
+		return w.isSameType(tt.X, ntt.X)
+	case *ast.ArrayType:
+		ntt, ok := nt.(*ast.ArrayType)
+		if !ok {
+			return false
+		}
+
+		return w.isSameType(tt.Elt, ntt.Elt)
+	case *ast.MapType:
+		ntt, ok := nt.(*ast.MapType)
+		if !ok {
+			return false
+		}
+
+		return w.isSameType(tt.Key, ntt.Key) && w.isSameType(tt.Value, ntt.Value)
+	case *ast.SelectorExpr:
+		ntt, ok := nt.(*ast.SelectorExpr)
+		if !ok {
+			return false
+		}
+
+		return tt.X.(*ast.Ident).Name == ntt.X.(*ast.Ident).Name && tt.Sel.Name == ntt.Sel.Name
 	}
 
 	return false
