@@ -65,4 +65,4 @@ Vermouth is not designed to replace human-edited change logs completely. On the 
 
 ## Notes
 
-So far, vermouth only compare structs and interfaces, in which only fields in structs will be took into account. More changes could be expected to be supported if this tool is proved to be a good and useful one.
+So far, vermouth only compare structs and interfaces, and in the cases of structs, only fields will be took into account. More changes could be expected to be supported if this tool is proved to be a good and useful one.

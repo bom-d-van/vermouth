@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"os"
-	"github.com/bom-d-van/goutils/gocheckutils/logutils"
+	"github.com/bom-d-van/goutils/logutils"
 
 	"github.com/bom-d-van/vermouth/verparser"
 )
